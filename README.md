@@ -1,4 +1,4 @@
-# BootKey
+# Bootkey
 Extract the BootKey from an offline system hive.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/cuhsat/bootkey.svg)](https://pkg.go.dev/github.com/cuhsat/bootkey)

@@ -72,7 +72,11 @@ func extract(path string) (key []byte, err error) {
 	// decode unicode step
 	if buf.Len() > 32 {
 		dec := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder()
-		tmp, _ = dec.String(buf.String())
+		tmp, err = dec.String(buf.String())
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// decode hex step

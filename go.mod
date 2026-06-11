@@ -1,9 +1,9 @@
-module go.foxforensics.dev/bootkey
+module go.foxforensics.eu/bootkey
 
 go 1.26
 
 require (
-	golang.org/x/text v0.37.0
+	golang.org/x/text v0.38.0
 	www.velocidex.com/golang/regparser v0.0.0-20250203141505-31e704a67ef7
 )
 

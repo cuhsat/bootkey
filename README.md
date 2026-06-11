@@ -2,7 +2,7 @@
 Extract the BootKey from an offline system hive.
 
 ```console
-go install go.foxforensics.dev/bootkey@latest
+go install go.foxforensics.eu/bootkey@latest
 ```
 
 ## Usage

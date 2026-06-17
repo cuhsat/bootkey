@@ -28,10 +28,10 @@ func main() {
 		os.Exit(2)
 	}
 
-	key, err := bootkey.ReadFile(os.Args[1])
+	key, err := bootkey.ExtractFromFile(os.Args[1])
 
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 

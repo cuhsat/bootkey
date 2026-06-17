@@ -12,14 +12,11 @@ import (
 	"www.velocidex.com/golang/regparser"
 )
 
-// ControlSet fallback
-var ControlSet = "ControlSet001"
-
 // SBox for key transformation
-var SBox = []int{8, 5, 4, 2, 11, 9, 13, 3, 0, 6, 1, 12, 14, 10, 15, 7}
+var SBox = [16]int{8, 5, 4, 2, 11, 9, 13, 3, 0, 6, 1, 12, 14, 10, 15, 7}
 
-// ReadFile and return the extracted bootkey and any potential errors.
-func ReadFile(path string) ([]byte, error) {
+// ExtractFromFile and return the extracted bootkey and any potential errors.
+func ExtractFromFile(path string) ([]byte, error) {
 	f, err := os.Open(path)
 
 	if err != nil {
@@ -30,11 +27,13 @@ func ReadFile(path string) ([]byte, error) {
 		_ = f.Close()
 	}()
 
-	return ReadData(f)
+	return ExtractFromReader(f)
 }
 
-// ReadData and return the extracted bootkey and any potential errors.
-func ReadData(r io.ReaderAt) ([]byte, error) {
+// ExtractFromReader and return the extracted bootkey and any potential errors.
+func ExtractFromReader(r io.ReaderAt) ([]byte, error) {
+	var cs = "ControlSet001" // fallback
+
 	reg, err := regparser.NewRegistry(r)
 
 	if err != nil {
@@ -45,7 +44,7 @@ func ReadData(r io.ReaderAt) ([]byte, error) {
 	if k := reg.OpenKey("\\Select"); k != nil {
 		for _, v := range k.Values() {
 			if v.ValueName() == "Current" {
-				ControlSet = fmt.Sprintf("ControlSet%03d", v.ValueData().Uint64)
+				cs = fmt.Sprintf("ControlSet%03d", v.ValueData().Uint64)
 			}
 		}
 	}
@@ -56,7 +55,12 @@ func ReadData(r io.ReaderAt) ([]byte, error) {
 	for _, v := range []string{
 		"JD", "Skew1", "GBG", "Data",
 	} {
-		k := reg.OpenKey(fmt.Sprintf("\\%s\\Control\\Lsa\\%s", ControlSet, v))
+		k := reg.OpenKey(fmt.Sprintf("\\%s\\Control\\Lsa\\%s", cs, v))
+
+		if k == nil {
+			return nil, fmt.Errorf("key not found: %s", v)
+		}
+
 		b := make([]byte, k.ClassLength())
 
 		_, err = reg.BaseBlock.HiveBin().Reader.ReadAt(b, int64(k.Class()+4096+4))
@@ -70,7 +74,7 @@ func ReadData(r io.ReaderAt) ([]byte, error) {
 
 	tmp := buf.String()
 
-	// decode unicode step
+	// decode Unicode step
 	if buf.Len() > 32 {
 		tmp, err = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewDecoder().String(buf.String())
 
